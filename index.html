@@ -6,14 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
   <meta name="theme-color" content="#0f172a" />
   <meta name="color-scheme" content="dark light" />
-  <title>Facility Support</title>
+  <title>Facility Support Hub</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
-  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
-  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="apple-touch-icon" href="icons/icon.svg">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Facility Support">
+  <meta name="apple-mobile-web-app-title" content="FS Launcher">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <script src="config.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -117,17 +116,16 @@
     .brand { display: flex; align-items: center; gap: var(--space-2); }
 
     .brand-mark {
-      width: 38px;
-      height: 38px;
-      border-radius: 11px;
       display: grid;
       place-items: center;
-      background: var(--accent);
-      color: #fff;
-      font-size: 13px;
-      font-weight: 700;
+      height: 40px;
+      padding: 5px 8px;
+      border-radius: 12px;
+      background: #FFFFFF;
+      border: 1px solid var(--color-border);
       flex-shrink: 0;
     }
+    .brand-mark svg { display: block; height: 100%; width: auto; }
 
     .title-wrap { display: flex; flex-direction: column; min-width: 0; }
 
@@ -397,9 +395,11 @@
   <main class="app">
     <header class="header">
       <div class="brand">
-        <span class="brand-mark" aria-hidden="true">⚙️</span>
+        <span class="brand-mark" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 10 1229 625"><path fill="#1F4E9C" fill-rule="evenodd" d="M9 602L324 60Q349 17 392 17L772 17L474 530Q433 602 392 602ZM178 474L253 474L332 340L522 340L561 272L372 272L404 215Q420 199 440 199L620 199L657 132L408 132Q372 132 350 175Z"/><path fill="#9CC247" fill-rule="evenodd" d="M480 625L721 198Q760 131 808 131L1170 131L914 581Q889 625 850 625ZM597 537L845 537Q880 537 902 498L964 388Q972 345 936 345L797 345Q782 345 788 329L806 299Q818 287 842 287L1018 287L1055 220L806 220Q775 220 755 255L690 376Q686 411 714 411L861 411Q872 412 870 424L851 457Q845 470 827 471L632 471Z"/><path fill="#D6312B" d="M803 17L1222 17L1177 97L759 97Z"/></svg>
+        </span>
         <div class="title-wrap">
-          <h1 class="title" id="appTitle">FACILITY SUPPORT</h1>
+          <h1 class="title" id="appTitle">FACILITY SUPPORT HUB</h1>
           <div class="datetime" id="dateTime">Memuat waktu...</div>
         </div>
       </div>
@@ -415,7 +415,7 @@
     </section>
 
     <footer class="footer">
-      <span class="pill" id="footerPill">Internal Launcher</span>
+      <span class="pill" id="footerPill">Unified Digital Access</span>
     </footer>
   </main>
 
@@ -448,9 +448,9 @@
   <script>
     /* ===== Default tampilan (bisa ditimpa config.js / Script Properties CONFIG) ===== */
     const DEFAULTS = {
-      APP_NAME: 'FACILITY SUPPORT',
-      VERSION: '2.0.0',
-      FOOTER: 'Internal Launcher',
+      APP_NAME: 'FACILITY SUPPORT HUB',
+      VERSION: '2.5.0',
+      FOOTER: 'Unified App Access',
       ENABLE_VIBRATE: true,
       ENABLE_RIPPLE: true,
       THEME: 'auto', // auto | light | dark
