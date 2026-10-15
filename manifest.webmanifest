@@ -1,6 +1,6 @@
 {
-  "name": "Facility Support",
-  "short_name": "FAST Launcher",
+  "name": "FAST Hub",
+  "short_name": "FAST Hub",
   "description": "Internal launcher Facility Support",
   "lang": "id",
   "start_url": "./",
