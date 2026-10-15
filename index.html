@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Facility Support</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Facility Support">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <script src="config.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 16px;
+      --space-4: 24px;
+      --space-5: 32px;
+      --space-6: 40px;
+
+      --radius-btn: 14px;
+      --radius-input: 16px;
+      --radius-card: 20px;
+      --radius-modal: 24px;
+
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 1px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 12px 24px -6px rgba(15, 23, 42, 0.16), 0 4px 8px -2px rgba(15, 23, 42, 0.08);
+
+      --color-bg: #0F172A;
+      --color-surface: #1E293B;
+      --color-border: #334155;
+      --color-text: #F8FAFC;
+      --color-text-secondary: #CBD5E1;
+
+      --accent: #2563EB;
+      --accent-hover: #1D4ED8;
+      --accent-soft: rgba(37, 99, 235, 0.18);
+
+      --status-online: #22C55E;
+      --status-online-bg: rgba(34, 197, 94, 0.16);
+      --status-dev: #F59E0B;
+      --status-dev-bg: rgba(245, 158, 11, 0.16);
+      --status-maint: #EF4444;
+      --status-maint-bg: rgba(239, 68, 68, 0.16);
+      --status-locked: #94A3B8;
+      --status-locked-bg: rgba(148, 163, 184, 0.16);
+
+      --font-sans: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+    }
+
+    body.theme-light {
+      --color-bg: #F6F8FC;
+      --color-surface: #FFFFFF;
+      --color-border: #E5E7EB;
+      --color-text: #111827;
+      --color-text-secondary: #6B7280;
+
+      --status-online-bg: rgba(22, 163, 74, 0.12);
+      --status-dev-bg: rgba(217, 119, 6, 0.12);
+      --status-maint-bg: rgba(220, 38, 38, 0.12);
+      --status-locked-bg: rgba(100, 116, 139, 0.12);
+
+      --status-online: #16A34A;
+      --status-dev: #D97706;
+      --status-maint: #DC2626;
+      --status-locked: #64748B;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: var(--font-sans);
+      -webkit-tap-highlight-color: transparent;
+      overflow: hidden;
+    }
+
+    body { display: flex; justify-content: center; }
+
+    .app {
+      width: 100%;
+      max-width: 480px;
+      height: 100dvh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
+      scroll-behavior: smooth;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+      padding:
+        calc(var(--space-4) + env(safe-area-inset-top))
+        max(var(--space-3), env(safe-area-inset-right))
+        calc(var(--space-4) + env(safe-area-inset-bottom))
+        max(var(--space-3), env(safe-area-inset-left));
+    }
+
+    @media (min-width: 600px)  { .app { max-width: 640px; } }
+    @media (min-width: 1024px) { .app { max-width: 920px; } }
+
+    .header { display: flex; flex-direction: column; gap: var(--space-2); }
+    .brand { display: flex; align-items: center; gap: var(--space-2); }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 11px;
+      display: grid;
+      place-items: center;
+      background: var(--accent);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .title-wrap { display: flex; flex-direction: column; min-width: 0; }
+
+    .title {
+      margin: 0;
+      font-size: clamp(22px, 6vw, 32px);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+
+    .datetime {
+      margin-top: 2px;
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      line-height: 1.4;
+      font-weight: 500;
+    }
+
+    .section-title {
+      margin: 0 0 var(--space-2);
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-3);
+    }
+
+    .card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: var(--space-2);
+      min-height: 44px;
+      padding: var(--space-4) var(--space-3);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-sm);
+      text-decoration: none;
+      color: inherit;
+      overflow: hidden;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+      animation: fadeIn 0.18s ease both;
+    }
+
+    .card.full { grid-column: 1 / -1; }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: color-mix(in srgb, var(--accent) 30%, var(--color-border));
+    }
+    .card:active { transform: scale(0.98); }
+    .card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    .icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .label { font-size: 16px; font-weight: 600; line-height: 1.3; }
+    .desc  { font-size: 13px; font-weight: 400; color: var(--color-text-secondary); line-height: 1.45; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      margin-top: var(--space-1);
+      padding: 3px var(--space-2);
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .badge.online { color: var(--status-online); background: var(--status-online-bg); }
+    .badge.dev    { color: var(--status-dev);    background: var(--status-dev-bg); }
+    .badge.maint  { color: var(--status-maint);  background: var(--status-maint-bg); }
+    .badge.locked { color: var(--status-locked); background: var(--status-locked-bg); }
+
+    .empty-state {
+      text-align: center;
+      color: var(--color-text-secondary);
+      font-size: 13px;
+      padding: var(--space-6) 0;
+    }
+    .empty-state .btn { margin-top: var(--space-3); padding: 0 var(--space-4); }
+
+    .footer {
+      display: flex;
+      justify-content: center;
+      margin-top: auto;
+      padding-top: var(--space-2);
+    }
+
+    .pill {
+      font-size: 12px;
+      color: var(--color-text-secondary);
+      padding: var(--space-1) var(--space-3);
+      border-radius: 999px;
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+    }
+
+    .modal-backdrop,
+    .state-backdrop {
+      position: fixed;
+      inset: 0;
+      height: 100dvh;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding:
+        max(var(--space-3), env(safe-area-inset-top))
+        max(var(--space-3), env(safe-area-inset-right))
+        max(var(--space-3), env(safe-area-inset-bottom))
+        max(var(--space-3), env(safe-area-inset-left));
+      overflow-y: auto;
+      background: rgba(15, 23, 42, 0.6);
+      z-index: 1000;
+      animation: backdropFade 0.15s ease both;
+    }
+    .state-backdrop { z-index: 1100; }
+
+    .modal,
+    .state-panel {
+      width: 100%;
+      max-width: 340px;
+      max-height: 100%;
+      overflow-y: auto;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-modal);
+      box-shadow: var(--shadow-md);
+      padding: var(--space-4);
+      animation: panelIn 0.2s ease both;
+      flex-shrink: 0;
+    }
+    .state-panel { text-align: center; }
+
+    .modal h3,
+    .state-title { margin: 0 0 var(--space-1); font-size: 16px; font-weight: 600; }
+
+    .modal p,
+    .state-copy { margin: 0; color: var(--color-text-secondary); font-size: 13px; line-height: 1.5; }
+
+    .input {
+      width: 100%;
+      min-height: 48px;
+      margin-top: var(--space-3);
+      border-radius: var(--radius-input);
+      border: 1px solid var(--color-border);
+      background: var(--color-bg);
+      color: var(--color-text);
+      font: inherit;
+      font-size: 16px;
+      letter-spacing: 2px;
+      text-align: center;
+      font-weight: 600;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-2);
+      margin-top: var(--space-4);
+    }
+
+    .btn {
+      min-height: 48px;
+      border: none;
+      border-radius: var(--radius-btn);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease, background 0.15s ease;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .btn:disabled { opacity: 0.6; cursor: default; transform: none; }
+
+    .btn-cancel { background: var(--color-bg); color: var(--color-text); border: 1px solid var(--color-border); }
+    .btn-ok, .btn-back { background: var(--accent); color: #fff; }
+    .btn-ok:hover:not(:disabled), .btn-back:hover { background: var(--accent-hover); }
+    .btn-back { width: 100%; margin-top: var(--space-4); }
+
+    .error {
+      display: none;
+      margin-top: var(--space-2);
+      color: var(--status-maint);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .state-icon { font-size: 40px; line-height: 1; margin-bottom: var(--space-2); display: inline-block; }
+    .state-name { font-size: 16px; font-weight: 600; margin-bottom: var(--space-1); }
+    .state-headline { font-size: 16px; font-weight: 600; margin: var(--space-2) 0 var(--space-1); }
+
+    .state-progress {
+      margin: var(--space-4) 0 var(--space-3);
+      padding: var(--space-2);
+      border-radius: var(--radius-input);
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      overflow: hidden;
+    }
+
+    .bar { position: relative; height: 6px; border-radius: 999px; background: var(--color-border); overflow: hidden; }
+    .bar::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      width: 40%;
+      border-radius: 999px;
+      background: var(--status-dev);
+      animation: loadingBar 1.1s ease-in-out infinite;
+    }
+    .bar.warn::before { background: var(--status-maint); }
+
+    .hint { font-size: 12px; color: var(--color-text-secondary); margin-top: var(--space-3); }
+
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      transform: scale(0);
+      animation: ripple 380ms ease-out;
+      background: rgba(0, 0, 0, 0.06);
+      pointer-events: none;
+    }
+    body:not(.theme-light) .ripple { background: rgba(255, 255, 255, 0.10); }
+
+    @keyframes ripple { to { transform: scale(4.2); opacity: 0; } }
+    @keyframes loadingBar { 0% { transform: translateX(-90%); } 100% { transform: translateX(260%); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes backdropFade { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes panelIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">⚙️</span>
+        <div class="title-wrap">
+          <h1 class="title" id="appTitle">FACILITY SUPPORT</h1>
+          <div class="datetime" id="dateTime">Memuat waktu...</div>
+        </div>
+      </div>
+    </header>
+
+    <section aria-label="Semua Aplikasi">
+      <h2 class="section-title">Aplikasi</h2>
+      <div class="grid" id="grid"></div>
+      <div class="empty-state" id="emptyState" hidden>
+        <div id="emptyText">Memuat aplikasi...</div>
+        <button class="btn btn-ok" id="retryBtn" hidden>Coba lagi</button>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span class="pill" id="footerPill">Internal Launcher</span>
+    </footer>
+  </main>
+
+  <div class="modal-backdrop" id="assetModal" role="dialog" aria-modal="true" aria-labelledby="assetTitle">
+    <div class="modal">
+      <h3 id="assetTitle">Kode Akses</h3>
+      <p id="assetPrompt">Masukkan kode untuk membuka menu ini.</p>
+      <input class="input" id="assetCode" inputmode="numeric" autocomplete="off" placeholder="••••" maxlength="32" />
+      <div class="error" id="assetError" role="alert">Kode salah.</div>
+      <div class="actions">
+        <button class="btn btn-cancel" id="assetCancel">Batal</button>
+        <button class="btn btn-ok" id="assetOk">Buka</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="state-backdrop" id="stateOverlay" aria-hidden="true">
+    <div class="state-panel">
+      <div class="state-icon" id="stateIcon">🚧</div>
+      <div class="state-title" id="stateTopLabel">DEVELOPMENT</div>
+      <div class="state-name" id="stateName">APP</div>
+      <div class="state-headline" id="stateHeadline">Development in Progress...</div>
+      <div class="state-copy" id="stateCopy">This feature is not available yet. Please check back soon.</div>
+      <div class="state-progress"><div class="bar" id="stateBar"></div></div>
+      <div class="hint" id="stateHint">Tap layar untuk kembali</div>
+      <button class="btn btn-back" id="stateBack">Kembali</button>
+    </div>
+  </div>
+
+  <script>
+    /* ===== Default tampilan (bisa ditimpa config.js / Script Properties CONFIG) ===== */
+    const DEFAULTS = {
+      APP_NAME: 'FACILITY SUPPORT',
+      VERSION: '2.0.0',
+      FOOTER: 'Internal Launcher',
+      ENABLE_VIBRATE: true,
+      ENABLE_RIPPLE: true,
+      THEME: 'auto', // auto | light | dark
+      ACCENT: '#2563EB'
+    };
+    const CONFIG = Object.assign({}, DEFAULTS, window.FS_CONFIG || {});
+    let APPS = [];
+
+    /* ===== Lapisan data: fetch ke Apps Script /exec ===== */
+    const CACHE_KEY = 'fs_apps_v2';
+    const API = {
+      async load() {
+        if (!CONFIG.API_URL) throw new Error('API_URL belum diisi di config.js');
+        const res = await fetch(CONFIG.API_URL + '?action=apps&t=' + Date.now(), { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      },
+      async verify(id, code) {
+        // text/plain = "simple request" sehingga tidak memicu preflight CORS (Apps Script tidak mendukungnya)
+        const res = await fetch(CONFIG.API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'verify', id: id, code: code })
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      },
+      cacheGet() {
+        try { return JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch (e) { return null; }
+      },
+      cacheSet(data) {
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (e) {}
+      }
+    };
+
+
+    const $ = (id) => document.getElementById(id);
+    const grid = $('grid'), emptyState = $('emptyState'), emptyText = $('emptyText'), retryBtn = $('retryBtn');
+    const appTitle = $('appTitle'), footerPill = $('footerPill'), dateTimeEl = $('dateTime');
+    const modal = $('assetModal'), assetTitle = $('assetTitle'), assetPrompt = $('assetPrompt');
+    const assetCode = $('assetCode'), assetError = $('assetError'), assetCancel = $('assetCancel'), assetOk = $('assetOk');
+    const stateOverlay = $('stateOverlay'), stateIcon = $('stateIcon'), stateTopLabel = $('stateTopLabel');
+    const stateName = $('stateName'), stateHeadline = $('stateHeadline'), stateCopy = $('stateCopy');
+    const stateBar = $('stateBar'), stateHint = $('stateHint'), stateBack = $('stateBack');
+
+    let pendingApp = null;
+    let verifying = false;
+
+    function isDarkTheme() {
+      if (CONFIG.THEME === 'dark') return true;
+      if (CONFIG.THEME === 'light') return false;
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+
+    function applyTheme() {
+      document.body.classList.toggle('theme-light', !isDarkTheme());
+      document.body.style.setProperty('--accent', CONFIG.ACCENT);
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', isDarkTheme() ? '#0f172a' : '#F6F8FC');
+    }
+
+    function vibrate(ms = 20) {
+      try { if (CONFIG.ENABLE_VIBRATE && navigator.vibrate) navigator.vibrate(ms); } catch (e) {}
+    }
+
+    function hexToRgba(hex, alpha) {
+      const clean = String(hex || '#2563eb').replace('#', '');
+      const n = parseInt(clean.length === 3 ? clean.replace(/./g, '$&$&') : clean, 16) || 0;
+      return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+    }
+
+    function createRipple(card, event) {
+      if (!CONFIG.ENABLE_RIPPLE) return;
+      const rect = card.getBoundingClientRect();
+      const ripple = document.createElement('span');
+      const size = Math.max(rect.width, rect.height);
+      ripple.className = 'ripple';
+      ripple.style.width = ripple.style.height = size + 'px';
+      ripple.style.left = (event.clientX - rect.left - size / 2) + 'px';
+      ripple.style.top = (event.clientY - rect.top - size / 2) + 'px';
+      card.appendChild(ripple);
+      ripple.addEventListener('animationend', () => ripple.remove());
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
+
+    function badgeMeta(app) {
+      if (app.status === 'construction') return { text: 'DEVELOPMENT', cls: 'dev' };
+      if (app.status === 'maintenance') return { text: 'MAINTENANCE', cls: 'maint' };
+      if (app.locked) return { text: 'LOCKED', cls: 'locked' };
+      return { text: 'ONLINE', cls: 'online' };
+    }
+
+    function cardHTML(app, index) {
+      const badge = badgeMeta(app);
+      const iconBg = hexToRgba(app.color, 0.16);
+      const iconBorder = hexToRgba(app.color, 0.28);
+      const ariaLabel = escapeHtml(app.name + (app.subtitle ? ', ' + app.subtitle : ''));
+      return `
+        <a class="card${app.fullWidth ? ' full' : ''}" href="#" data-index="${index}" aria-label="${ariaLabel}">
+          <div class="icon" style="background:${iconBg};border:1px solid ${iconBorder};">${escapeHtml(app.icon || '🔗')}</div>
+          <div class="label">${escapeHtml(app.name)}</div>
+          <div class="desc">${escapeHtml(app.subtitle || '')}</div>
+          <span class="badge ${badge.cls}">${badge.text}</span>
+        </a>`;
+    }
+
+    function renderHeader() {
+      appTitle.textContent = CONFIG.APP_NAME;
+      document.title = CONFIG.APP_NAME;
+      footerPill.textContent = `${CONFIG.FOOTER} • v${CONFIG.VERSION}`;
+      applyTheme();
+    }
+
+    function renderApps() {
+      renderHeader();
+      if (!APPS.length) {
+        grid.innerHTML = '';
+        showEmpty('Tidak ada aplikasi yang tersedia.', false);
+        return;
+      }
+      grid.innerHTML = APPS.map(cardHTML).join('');
+      emptyState.hidden = true;
+    }
+
+    function showEmpty(text, canRetry) {
+      emptyText.textContent = text;
+      retryBtn.hidden = !canRetry;
+      emptyState.hidden = false;
+    }
+
+    function applyData(data) {
+      if (!data || !Array.isArray(data.apps)) throw new Error('Format data tidak valid');
+      Object.assign(CONFIG, data.config || {});
+      APPS = data.apps;
+      renderApps();
+    }
+
+    async function loadApps() {
+      const hadCache = APPS.length > 0;
+      if (!hadCache) { grid.innerHTML = ''; showEmpty('Memuat aplikasi...', false); }
+      try {
+        const data = await API.load();
+        applyData(data);
+        API.cacheSet(data);
+      } catch (err) {
+        if (!hadCache) showEmpty('Gagal memuat daftar aplikasi. Periksa koneksi, lalu coba lagi.', true);
+      }
+    }
+
+    function setDateTime() {
+      const now = new Date();
+      const dateText = new Intl.DateTimeFormat('id-ID', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Jakarta'
+      }).format(now);
+      const timeText = new Intl.DateTimeFormat('id-ID', {
+        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: 'Asia/Jakarta'
+      }).format(now);
+      dateTimeEl.textContent = `${dateText} • ${timeText} WIB`;
+    }
+
+    /* ===== Buka URL ===== */
+    function openUrl(url) {
+      let opened = null;
+      try { opened = window.open(url, '_blank'); } catch (e) {}
+      if (opened) return;
+      try { window.top.location.href = url; } catch (e) { window.location.href = url; }
+    }
+
+    /* ===== Modal kode akses (validasi di server) ===== */
+    function openPasswordModal(app) {
+      pendingApp = app;
+      assetTitle.textContent = app.name + ' ACCESS';
+      assetPrompt.textContent = 'Masukkan kode untuk membuka menu ini.';
+      assetError.style.display = 'none';
+      assetCode.value = '';
+      setVerifying(false);
+      modal.style.display = 'flex';
+      setTimeout(() => assetCode.focus(), 50);
+    }
+
+    function closePasswordModal() {
+      modal.style.display = 'none';
+      pendingApp = null;
+      assetCode.value = '';
+    }
+
+    function setVerifying(on) {
+      verifying = on;
+      assetOk.disabled = on;
+      assetCode.disabled = on;
+      assetOk.textContent = on ? 'Memeriksa...' : 'Buka';
+    }
+
+    function showCodeError(msg) {
+      assetError.textContent = msg;
+      assetError.style.display = 'block';
+    }
+
+    async function submitCode() {
+      const app = pendingApp;
+      if (!app || verifying) return;
+      const code = assetCode.value.trim();
+      if (!code) { showCodeError('Masukkan kode terlebih dahulu.'); return; }
+      assetError.style.display = 'none';
+      setVerifying(true);
+      try {
+        const res = await API.verify(app.id, code);
+        if (res && res.ok && res.url) {
+          closePasswordModal();
+          openUrl(res.url);
+          return;
+        }
+        setVerifying(false);
+        if (res && res.error === 'locked') {
+          showCodeError('Terlalu banyak percobaan. Coba lagi beberapa menit lagi.');
+        } else {
+          showCodeError('Kode salah.');
+          assetCode.select();
+        }
+      } catch (err) {
+        setVerifying(false);
+        showCodeError('Gagal terhubung ke server. Coba lagi.');
+      }
+    }
+
+    /* ===== Overlay status ===== */
+    function showState(app) {
+      const isMaint = app.status === 'maintenance';
+      stateIcon.textContent = isMaint ? '🛠' : '🚧';
+      stateTopLabel.textContent = isMaint ? 'MAINTENANCE' : 'DEVELOPMENT';
+      stateName.textContent = app.name || 'APP';
+      stateHeadline.textContent = isMaint ? 'System Maintenance' : 'Development in Progress...';
+      stateCopy.textContent = isMaint ? 'Please try again later.' : 'This feature is not available yet. Please check back soon.';
+      stateBar.className = 'bar ' + (isMaint ? 'warn' : '');
+      stateHint.textContent = 'Tap layar untuk kembali';
+      stateOverlay.style.display = 'flex';
+      history.pushState({ fsOverlay: true }, '', location.href);
+    }
+
+    function hideState() {
+      if (stateOverlay.style.display === 'flex') stateOverlay.style.display = 'none';
+    }
+
+    function cancelStateAndGoHome() {
+      hideState();
+      if (history.state && history.state.fsOverlay) {
+        try { history.back(); } catch (e) {}
+      }
+    }
+
+    function handleCard(app) {
+      if (app.status === 'construction' || app.status === 'maintenance') { showState(app); return; }
+      if (app.locked) { openPasswordModal(app); return; }
+      if (app.url) openUrl(app.url);
+    }
+
+    grid.addEventListener('click', (e) => {
+      const card = e.target.closest('.card');
+      if (!card) return;
+      e.preventDefault();
+      createRipple(card, e);
+      vibrate(18);
+      const app = APPS[Number(card.dataset.index)];
+      if (app) handleCard(app);
+    });
+
+    assetCancel.addEventListener('click', closePasswordModal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closePasswordModal(); });
+    assetOk.addEventListener('click', submitCode);
+    assetCode.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') submitCode();
+      if (e.key === 'Escape') closePasswordModal();
+    });
+
+    stateOverlay.addEventListener('click', cancelStateAndGoHome);
+    stateBack.addEventListener('click', (e) => { e.stopPropagation(); cancelStateAndGoHome(); });
+    retryBtn.addEventListener('click', loadApps);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      if (modal.style.display === 'flex') closePasswordModal();
+      if (stateOverlay.style.display === 'flex') hideState();
+    });
+
+    window.addEventListener('popstate', hideState);
+
+    if (window.matchMedia) {
+      const mq = window.matchMedia('(prefers-color-scheme: dark)');
+      const onChange = () => { if (CONFIG.THEME === 'auto') applyTheme(); };
+      if (mq.addEventListener) mq.addEventListener('change', onChange);
+      else if (mq.addListener) mq.addListener(onChange);
+    }
+
+    /* ===== Mulai ===== */
+    renderHeader();
+    setDateTime();
+    setInterval(setDateTime, 1000);
+
+    const cached = API.cacheGet();
+    if (cached) { try { applyData(cached); } catch (e) {} }
+    loadApps();
+
+    // Muat ulang saat aplikasi kembali ke layar (mis. PWA dibuka lagi)
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') loadApps();
+    });
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+    }
+  </script>
+</body>
+</html>
