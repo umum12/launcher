@@ -4,20 +4,20 @@
   <base target="_top">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
-  <meta name="theme-color" content="#0f172a" />
+  <meta name="theme-color" content="#F6F8FC" />
   <meta name="color-scheme" content="dark light" />
-  <title>Facility Support Hub</title>
+  <title>FAST HUB</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
   <link rel="apple-touch-icon" href="icons/icon.svg">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="FS Launcher">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="FAST HUB">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <script src="config.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
   <style>
     :root {
@@ -52,10 +52,8 @@
       --status-dev-bg: rgba(245, 158, 11, 0.16);
       --status-maint: #EF4444;
       --status-maint-bg: rgba(239, 68, 68, 0.16);
-      --status-locked: #94A3B8;
-      --status-locked-bg: rgba(148, 163, 184, 0.16);
 
-      --font-sans: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
     }
 
     body.theme-light {
@@ -68,12 +66,10 @@
       --status-online-bg: rgba(22, 163, 74, 0.12);
       --status-dev-bg: rgba(217, 119, 6, 0.12);
       --status-maint-bg: rgba(220, 38, 38, 0.12);
-      --status-locked-bg: rgba(100, 116, 139, 0.12);
 
       --status-online: #16A34A;
       --status-dev: #D97706;
       --status-maint: #DC2626;
-      --status-locked: #64748B;
     }
 
     * { box-sizing: border-box; }
@@ -91,7 +87,21 @@
 
     body { display: flex; justify-content: center; }
 
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(60% 38% at 12% -4%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 70%),
+        radial-gradient(45% 32% at 100% 28%, rgba(156, 194, 71, 0.14), transparent 70%),
+        radial-gradient(50% 30% at 0% 100%, rgba(31, 78, 156, 0.16), transparent 70%);
+    }
+
     .app {
+      position: relative;
+      z-index: 1;
       width: 100%;
       max-width: 480px;
       height: 100dvh;
@@ -116,25 +126,67 @@
     .brand { display: flex; align-items: center; gap: var(--space-2); }
 
     .brand-mark {
-      display: grid;
-      place-items: center;
+      display: block;
       height: 40px;
-      padding: 5px 8px;
-      border-radius: 12px;
-      background: #FFFFFF;
-      border: 1px solid var(--color-border);
       flex-shrink: 0;
     }
     .brand-mark svg { display: block; height: 100%; width: auto; }
+    body:not(.theme-light) .fs-blue { fill: #5B8DEF; } /* biru logo lebih terang di mode gelap */
+
+    .theme-btn {
+      margin-left: auto;
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      border-radius: 12px;
+      border: 1px solid var(--color-border);
+      background: color-mix(in srgb, var(--color-surface) 72%, transparent);
+      color: var(--color-text);
+      font-size: 18px;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .theme-btn:active { transform: scale(0.94); }
+    .theme-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    .summary { margin: 0; font-size: 14px; font-weight: 500; color: var(--color-text-secondary); }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(24px + env(safe-area-inset-bottom));
+      transform: translate(-50%, 12px);
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: var(--color-text);
+      color: var(--color-bg);
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 1200;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
     .title-wrap { display: flex; flex-direction: column; min-width: 0; }
 
     .title {
       margin: 0;
-      font-size: clamp(22px, 6vw, 32px);
+      font-size: clamp(18px, 5vw, 30px);
       font-weight: 700;
       letter-spacing: -0.01em;
       line-height: 1.2;
+    }
+
+    .tagline {
+      margin-top: 2px;
+      font-size: 11.5px;
+      font-weight: 600;
+      line-height: 1.35;
+      color: color-mix(in srgb, var(--accent) 65%, var(--color-text));
     }
 
     .datetime {
@@ -167,19 +219,25 @@
       gap: var(--space-2);
       min-height: 44px;
       padding: var(--space-4) var(--space-3);
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
+      background:
+        linear-gradient(150deg, color-mix(in srgb, var(--c, var(--accent)) 16%, transparent), transparent 65%),
+        color-mix(in srgb, var(--color-surface) 72%, transparent);
+      -webkit-backdrop-filter: blur(14px) saturate(140%);
+      backdrop-filter: blur(14px) saturate(140%);
+      border: 1px solid color-mix(in srgb, var(--c, var(--accent)) 26%, var(--color-border));
       border-radius: var(--radius-card);
-      box-shadow: var(--shadow-sm);
+      box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.06);
       text-decoration: none;
       color: inherit;
       overflow: hidden;
       cursor: pointer;
       user-select: none;
       -webkit-user-select: none;
+      -webkit-touch-callout: none;
       touch-action: manipulation;
       transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
-      animation: fadeIn 0.18s ease both;
+      animation: rise 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+      animation-delay: calc(var(--i, 0) * 50ms);
     }
 
     .card.full { grid-column: 1 / -1; }
@@ -200,6 +258,9 @@
       place-items: center;
       font-size: 22px;
       flex-shrink: 0;
+      background: color-mix(in srgb, var(--c, var(--accent)) 18%, transparent);
+      border: 1px solid color-mix(in srgb, var(--c, var(--accent)) 32%, transparent);
+      box-shadow: 0 8px 18px -8px var(--c, var(--accent));
     }
 
     .label { font-size: 16px; font-weight: 600; line-height: 1.3; }
@@ -219,7 +280,19 @@
     .badge.online { color: var(--status-online); background: var(--status-online-bg); }
     .badge.dev    { color: var(--status-dev);    background: var(--status-dev-bg); }
     .badge.maint  { color: var(--status-maint);  background: var(--status-maint-bg); }
-    .badge.locked { color: var(--status-locked); background: var(--status-locked-bg); }
+    .badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      margin-right: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    .badge.online::before { animation: pulse 1.8s ease-out infinite; }
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 55%, transparent); }
+      100% { box-shadow: 0 0 0 7px transparent; }
+    }
 
     .empty-state {
       text-align: center;
@@ -245,7 +318,6 @@
       background: var(--color-surface);
     }
 
-    .modal-backdrop,
     .state-backdrop {
       position: fixed;
       inset: 0;
@@ -265,7 +337,6 @@
     }
     .state-backdrop { z-index: 1100; }
 
-    .modal,
     .state-panel {
       width: 100%;
       max-width: 340px;
@@ -281,36 +352,9 @@
     }
     .state-panel { text-align: center; }
 
-    .modal h3,
     .state-title { margin: 0 0 var(--space-1); font-size: 16px; font-weight: 600; }
 
-    .modal p,
     .state-copy { margin: 0; color: var(--color-text-secondary); font-size: 13px; line-height: 1.5; }
-
-    .input {
-      width: 100%;
-      min-height: 48px;
-      margin-top: var(--space-3);
-      border-radius: var(--radius-input);
-      border: 1px solid var(--color-border);
-      background: var(--color-bg);
-      color: var(--color-text);
-      font: inherit;
-      font-size: 16px;
-      letter-spacing: 2px;
-      text-align: center;
-      font-weight: 600;
-      outline: none;
-      transition: border-color 0.15s ease, box-shadow 0.15s ease;
-    }
-    .input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-
-    .actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: var(--space-2);
-      margin-top: var(--space-4);
-    }
 
     .btn {
       min-height: 48px;
@@ -324,20 +368,10 @@
     }
     .btn:active { transform: scale(0.97); }
     .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-    .btn:disabled { opacity: 0.6; cursor: default; transform: none; }
 
-    .btn-cancel { background: var(--color-bg); color: var(--color-text); border: 1px solid var(--color-border); }
     .btn-ok, .btn-back { background: var(--accent); color: #fff; }
     .btn-ok:hover:not(:disabled), .btn-back:hover { background: var(--accent-hover); }
     .btn-back { width: 100%; margin-top: var(--space-4); }
-
-    .error {
-      display: none;
-      margin-top: var(--space-2);
-      color: var(--status-maint);
-      font-size: 13px;
-      text-align: center;
-    }
 
     .state-icon { font-size: 40px; line-height: 1; margin-bottom: var(--space-2); display: inline-block; }
     .state-name { font-size: 16px; font-weight: 600; margin-bottom: var(--space-1); }
@@ -378,7 +412,7 @@
 
     @keyframes ripple { to { transform: scale(4.2); opacity: 0; } }
     @keyframes loadingBar { 0% { transform: translateX(-90%); } 100% { transform: translateX(260%); } }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes backdropFade { from { opacity: 0; } to { opacity: 1; } }
     @keyframes panelIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -396,17 +430,20 @@
     <header class="header">
       <div class="brand">
         <span class="brand-mark" aria-hidden="true">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 10 1229 625"><path fill="#1F4E9C" fill-rule="evenodd" d="M9 602L324 60Q349 17 392 17L772 17L474 530Q433 602 392 602ZM178 474L253 474L332 340L522 340L561 272L372 272L404 215Q420 199 440 199L620 199L657 132L408 132Q372 132 350 175Z"/><path fill="#9CC247" fill-rule="evenodd" d="M480 625L721 198Q760 131 808 131L1170 131L914 581Q889 625 850 625ZM597 537L845 537Q880 537 902 498L964 388Q972 345 936 345L797 345Q782 345 788 329L806 299Q818 287 842 287L1018 287L1055 220L806 220Q775 220 755 255L690 376Q686 411 714 411L861 411Q872 412 870 424L851 457Q845 470 827 471L632 471Z"/><path fill="#D6312B" d="M803 17L1222 17L1177 97L759 97Z"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 10 1229 625"><path class="fs-blue" fill="#1F4E9C" fill-rule="evenodd" d="M9 602L324 60Q349 17 392 17L772 17L474 530Q433 602 392 602ZM178 474L253 474L332 340L522 340L561 272L372 272L404 215Q420 199 440 199L620 199L657 132L408 132Q372 132 350 175Z"/><path fill="#9CC247" fill-rule="evenodd" d="M480 625L721 198Q760 131 808 131L1170 131L914 581Q889 625 850 625ZM597 537L845 537Q880 537 902 498L964 388Q972 345 936 345L797 345Q782 345 788 329L806 299Q818 287 842 287L1018 287L1055 220L806 220Q775 220 755 255L690 376Q686 411 714 411L861 411Q872 412 870 424L851 457Q845 470 827 471L632 471Z"/><path fill="#D6312B" d="M803 17L1222 17L1177 97L759 97Z"/></svg>
         </span>
         <div class="title-wrap">
-          <h1 class="title" id="appTitle">FACILITY SUPPORT HUB</h1>
+          <h1 class="title" id="appTitle">FAST HUB</h1>
+          <div class="tagline" id="tagline">Integrated Facility Support &amp; Services</div>
           <div class="datetime" id="dateTime">Memuat waktu...</div>
         </div>
+        <button class="theme-btn" id="themeBtn" type="button" aria-label="Ganti tema">🌙</button>
       </div>
+      <p class="summary" id="summary"></p>
     </header>
 
     <section aria-label="Semua Aplikasi">
-      <h2 class="section-title">Aplikasi</h2>
+      <h2 class="section-title">Aplikasi yang tersedia</h2>
       <div class="grid" id="grid"></div>
       <div class="empty-state" id="emptyState" hidden>
         <div id="emptyText">Memuat aplikasi...</div>
@@ -415,22 +452,9 @@
     </section>
 
     <footer class="footer">
-      <span class="pill" id="footerPill">Unified Digital Access</span>
+      <span class="pill" id="footerPill">Facility Support Launcher © 2025</span>
     </footer>
   </main>
-
-  <div class="modal-backdrop" id="assetModal" role="dialog" aria-modal="true" aria-labelledby="assetTitle">
-    <div class="modal">
-      <h3 id="assetTitle">Kode Akses</h3>
-      <p id="assetPrompt">Masukkan kode untuk membuka menu ini.</p>
-      <input class="input" id="assetCode" inputmode="numeric" autocomplete="off" placeholder="••••" maxlength="32" />
-      <div class="error" id="assetError" role="alert">Kode salah.</div>
-      <div class="actions">
-        <button class="btn btn-cancel" id="assetCancel">Batal</button>
-        <button class="btn btn-ok" id="assetOk">Buka</button>
-      </div>
-    </div>
-  </div>
 
   <div class="state-backdrop" id="stateOverlay" aria-hidden="true">
     <div class="state-panel">
@@ -445,12 +469,15 @@
     </div>
   </div>
 
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
   <script>
     /* ===== Default tampilan (bisa ditimpa config.js / Script Properties CONFIG) ===== */
     const DEFAULTS = {
-      APP_NAME: 'FACILITY SUPPORT HUB',
-      VERSION: '2.5.0',
-      FOOTER: 'Unified App Access',
+      APP_NAME: 'FAST HUB',
+      TAGLINE: 'Integrated Facility Support & Services',
+      VERSION: '2.0.0',
+      FOOTER: 'Facility Support Launcher © 2025',
       ENABLE_VIBRATE: true,
       ENABLE_RIPPLE: true,
       THEME: 'auto', // auto | light | dark
@@ -458,23 +485,14 @@
     };
     const CONFIG = Object.assign({}, DEFAULTS, window.FS_CONFIG || {});
     let APPS = [];
+    let lastSig = '';
 
     /* ===== Lapisan data: fetch ke Apps Script /exec ===== */
-    const CACHE_KEY = 'fs_apps_v2';
+    const CACHE_KEY = 'fs_apps_v5';
     const API = {
       async load() {
         if (!CONFIG.API_URL) throw new Error('API_URL belum diisi di config.js');
         const res = await fetch(CONFIG.API_URL + '?action=apps&t=' + Date.now(), { cache: 'no-store' });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.json();
-      },
-      async verify(id, code) {
-        // text/plain = "simple request" sehingga tidak memicu preflight CORS (Apps Script tidak mendukungnya)
-        const res = await fetch(CONFIG.API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'verify', id: id, code: code })
-        });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         return res.json();
       },
@@ -490,18 +508,18 @@
     const $ = (id) => document.getElementById(id);
     const grid = $('grid'), emptyState = $('emptyState'), emptyText = $('emptyText'), retryBtn = $('retryBtn');
     const appTitle = $('appTitle'), footerPill = $('footerPill'), dateTimeEl = $('dateTime');
-    const modal = $('assetModal'), assetTitle = $('assetTitle'), assetPrompt = $('assetPrompt');
-    const assetCode = $('assetCode'), assetError = $('assetError'), assetCancel = $('assetCancel'), assetOk = $('assetOk');
+    const summaryEl = $('summary'), themeBtn = $('themeBtn'), toast = $('toast'), taglineEl = $('tagline');
     const stateOverlay = $('stateOverlay'), stateIcon = $('stateIcon'), stateTopLabel = $('stateTopLabel');
     const stateName = $('stateName'), stateHeadline = $('stateHeadline'), stateCopy = $('stateCopy');
     const stateBar = $('stateBar'), stateHint = $('stateHint'), stateBack = $('stateBack');
 
-    let pendingApp = null;
-    let verifying = false;
+    let userTheme = null; // pilihan manual dari tombol tema
+    try { userTheme = localStorage.getItem('fs_theme'); } catch (e) {}
 
     function isDarkTheme() {
-      if (CONFIG.THEME === 'dark') return true;
-      if (CONFIG.THEME === 'light') return false;
+      const t = userTheme || CONFIG.THEME;
+      if (t === 'dark') return true;
+      if (t === 'light') return false;
       return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
 
@@ -510,16 +528,11 @@
       document.body.style.setProperty('--accent', CONFIG.ACCENT);
       const meta = document.querySelector('meta[name="theme-color"]');
       if (meta) meta.setAttribute('content', isDarkTheme() ? '#0f172a' : '#F6F8FC');
+      themeBtn.textContent = isDarkTheme() ? '☀️' : '🌙';
     }
 
     function vibrate(ms = 20) {
       try { if (CONFIG.ENABLE_VIBRATE && navigator.vibrate) navigator.vibrate(ms); } catch (e) {}
-    }
-
-    function hexToRgba(hex, alpha) {
-      const clean = String(hex || '#2563eb').replace('#', '');
-      const n = parseInt(clean.length === 3 ? clean.replace(/./g, '$&$&') : clean, 16) || 0;
-      return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
     }
 
     function createRipple(card, event) {
@@ -544,18 +557,18 @@
     function badgeMeta(app) {
       if (app.status === 'construction') return { text: 'DEVELOPMENT', cls: 'dev' };
       if (app.status === 'maintenance') return { text: 'MAINTENANCE', cls: 'maint' };
-      if (app.locked) return { text: 'LOCKED', cls: 'locked' };
       return { text: 'ONLINE', cls: 'online' };
     }
 
     function cardHTML(app, index) {
       const badge = badgeMeta(app);
-      const iconBg = hexToRgba(app.color, 0.16);
-      const iconBorder = hexToRgba(app.color, 0.28);
       const ariaLabel = escapeHtml(app.name + (app.subtitle ? ', ' + app.subtitle : ''));
+      const color = /^#[0-9a-f]{3,8}$/i.test(app.color) ? app.color : '#2563eb';
+      const direct = app.status === 'online' && /^https?:\/\//i.test(app.url || '');
+      const link = direct ? `href="${escapeHtml(app.url)}" target="_blank" rel="noopener noreferrer"` : 'href="#"';
       return `
-        <a class="card${app.fullWidth ? ' full' : ''}" href="#" data-index="${index}" aria-label="${ariaLabel}">
-          <div class="icon" style="background:${iconBg};border:1px solid ${iconBorder};">${escapeHtml(app.icon || '🔗')}</div>
+        <a class="card${app.fullWidth ? ' full' : ''}" ${link} data-index="${index}" style="--c:${color};--i:${index}" aria-label="${ariaLabel}">
+          <div class="icon">${escapeHtml(app.icon || '🔗')}</div>
           <div class="label">${escapeHtml(app.name)}</div>
           <div class="desc">${escapeHtml(app.subtitle || '')}</div>
           <span class="badge ${badge.cls}">${badge.text}</span>
@@ -564,6 +577,8 @@
 
     function renderHeader() {
       appTitle.textContent = CONFIG.APP_NAME;
+      taglineEl.textContent = CONFIG.TAGLINE || '';
+      taglineEl.hidden = !CONFIG.TAGLINE;
       document.title = CONFIG.APP_NAME;
       footerPill.textContent = `${CONFIG.FOOTER} • v${CONFIG.VERSION}`;
       applyTheme();
@@ -573,11 +588,14 @@
       renderHeader();
       if (!APPS.length) {
         grid.innerHTML = '';
+        lastSig = '';
         showEmpty('Tidak ada aplikasi yang tersedia.', false);
         return;
       }
-      grid.innerHTML = APPS.map(cardHTML).join('');
+      const sig = JSON.stringify(APPS);
+      if (sig !== lastSig) { grid.innerHTML = APPS.map(cardHTML).join(''); lastSig = sig; } // hindari animasi ulang
       emptyState.hidden = true;
+      updateSummary();
     }
 
     function showEmpty(text, canRetry) {
@@ -591,6 +609,7 @@
       Object.assign(CONFIG, data.config || {});
       APPS = data.apps;
       renderApps();
+      handleOpenParam();
     }
 
     async function loadApps() {
@@ -605,6 +624,29 @@
       }
     }
 
+    function greeting() {
+      const h = Number(new Intl.DateTimeFormat('en-GB', { hour: 'numeric', hourCycle: 'h23', timeZone: 'Asia/Jakarta' }).format(new Date()));
+      return h < 4 ? 'Selamat malam' : h < 11 ? 'Selamat pagi' : h < 15 ? 'Selamat siang' : h < 18 ? 'Selamat sore' : 'Selamat malam';
+    }
+
+    function updateSummary() {
+      const online = APPS.filter((a) => a.status === 'online').length;
+      const text = APPS.length ? `${greeting()} 👋 • ${online} dari ${APPS.length} aplikasi online` : `${greeting()} 👋`;
+      if (summaryEl.textContent !== text) summaryEl.textContent = text;
+    }
+
+    // Pintasan PWA: ./?open=LAPORAN langsung membuka aplikasi
+    let openParam = null;
+    try { openParam = new URLSearchParams(location.search).get('open'); } catch (e) {}
+    function handleOpenParam() {
+      if (!openParam || !APPS.length || !APPS[0].id) return;
+      const key = openParam.toUpperCase();
+      openParam = null;
+      try { history.replaceState(null, '', location.pathname); } catch (e) {}
+      const app = APPS.find((a) => a.id === key);
+      if (app) handleCard(app);
+    }
+
     function setDateTime() {
       const now = new Date();
       const dateText = new Intl.DateTimeFormat('id-ID', {
@@ -614,6 +656,7 @@
         hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: 'Asia/Jakarta'
       }).format(now);
       dateTimeEl.textContent = `${dateText} • ${timeText} WIB`;
+      updateSummary();
     }
 
     /* ===== Buka URL ===== */
@@ -622,63 +665,6 @@
       try { opened = window.open(url, '_blank'); } catch (e) {}
       if (opened) return;
       try { window.top.location.href = url; } catch (e) { window.location.href = url; }
-    }
-
-    /* ===== Modal kode akses (validasi di server) ===== */
-    function openPasswordModal(app) {
-      pendingApp = app;
-      assetTitle.textContent = app.name + ' ACCESS';
-      assetPrompt.textContent = 'Masukkan kode untuk membuka menu ini.';
-      assetError.style.display = 'none';
-      assetCode.value = '';
-      setVerifying(false);
-      modal.style.display = 'flex';
-      setTimeout(() => assetCode.focus(), 50);
-    }
-
-    function closePasswordModal() {
-      modal.style.display = 'none';
-      pendingApp = null;
-      assetCode.value = '';
-    }
-
-    function setVerifying(on) {
-      verifying = on;
-      assetOk.disabled = on;
-      assetCode.disabled = on;
-      assetOk.textContent = on ? 'Memeriksa...' : 'Buka';
-    }
-
-    function showCodeError(msg) {
-      assetError.textContent = msg;
-      assetError.style.display = 'block';
-    }
-
-    async function submitCode() {
-      const app = pendingApp;
-      if (!app || verifying) return;
-      const code = assetCode.value.trim();
-      if (!code) { showCodeError('Masukkan kode terlebih dahulu.'); return; }
-      assetError.style.display = 'none';
-      setVerifying(true);
-      try {
-        const res = await API.verify(app.id, code);
-        if (res && res.ok && res.url) {
-          closePasswordModal();
-          openUrl(res.url);
-          return;
-        }
-        setVerifying(false);
-        if (res && res.error === 'locked') {
-          showCodeError('Terlalu banyak percobaan. Coba lagi beberapa menit lagi.');
-        } else {
-          showCodeError('Kode salah.');
-          assetCode.select();
-        }
-      } catch (err) {
-        setVerifying(false);
-        showCodeError('Gagal terhubung ke server. Coba lagi.');
-      }
     }
 
     /* ===== Overlay status ===== */
@@ -708,26 +694,76 @@
 
     function handleCard(app) {
       if (app.status === 'construction' || app.status === 'maintenance') { showState(app); return; }
-      if (app.locked) { openPasswordModal(app); return; }
       if (app.url) openUrl(app.url);
     }
 
     grid.addEventListener('click', (e) => {
       const card = e.target.closest('.card');
       if (!card) return;
-      e.preventDefault();
+      if (suppressClick) { suppressClick = false; e.preventDefault(); return; }
       createRipple(card, e);
       vibrate(18);
+      if (card.hasAttribute('target')) return; // link asli: dibuka langsung oleh browser
+      e.preventDefault();
       const app = APPS[Number(card.dataset.index)];
       if (app) handleCard(app);
     });
 
-    assetCancel.addEventListener('click', closePasswordModal);
-    modal.addEventListener('click', (e) => { if (e.target === modal) closePasswordModal(); });
-    assetOk.addEventListener('click', submitCode);
-    assetCode.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') submitCode();
-      if (e.key === 'Escape') closePasswordModal();
+    /* ===== Tekan lama kartu = salin link ===== */
+    let pressTimer = null, pressX = 0, pressY = 0, suppressClick = false, toastTimer = null;
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
+    }
+
+    function legacyCopy(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;top:0;opacity:0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch (e) {}
+      ta.remove();
+    }
+
+    function copyText(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text).catch(() => legacyCopy(text));
+      }
+      legacyCopy(text);
+      return Promise.resolve();
+    }
+
+    function cancelPress() { clearTimeout(pressTimer); pressTimer = null; }
+
+    grid.addEventListener('pointerdown', (e) => {
+      suppressClick = false;
+      const card = e.target.closest('.card');
+      if (!card) return;
+      const app = APPS[Number(card.dataset.index)];
+      if (!app || !app.url) return;
+      pressX = e.clientX; pressY = e.clientY;
+      pressTimer = setTimeout(() => {
+        pressTimer = null;
+        suppressClick = true;
+        vibrate(30);
+        copyText(app.url).then(() => showToast('Link ' + app.name + ' disalin'));
+      }, 550);
+    });
+    grid.addEventListener('pointermove', (e) => {
+      if (pressTimer && Math.hypot(e.clientX - pressX, e.clientY - pressY) > 8) cancelPress();
+    });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach((t) => grid.addEventListener(t, cancelPress));
+    grid.addEventListener('contextmenu', (e) => { if (e.target.closest('.card')) e.preventDefault(); });
+
+    themeBtn.addEventListener('click', () => {
+      userTheme = isDarkTheme() ? 'light' : 'dark';
+      try { localStorage.setItem('fs_theme', userTheme); } catch (e) {}
+      applyTheme();
+      vibrate(12);
     });
 
     stateOverlay.addEventListener('click', cancelStateAndGoHome);
@@ -736,7 +772,6 @@
 
     document.addEventListener('keydown', (e) => {
       if (e.key !== 'Escape') return;
-      if (modal.style.display === 'flex') closePasswordModal();
       if (stateOverlay.style.display === 'flex') hideState();
     });
 
@@ -744,7 +779,7 @@
 
     if (window.matchMedia) {
       const mq = window.matchMedia('(prefers-color-scheme: dark)');
-      const onChange = () => { if (CONFIG.THEME === 'auto') applyTheme(); };
+      const onChange = () => { if (!userTheme && CONFIG.THEME === 'auto') applyTheme(); };
       if (mq.addEventListener) mq.addEventListener('change', onChange);
       else if (mq.addListener) mq.addListener(onChange);
     }
@@ -758,10 +793,6 @@
     if (cached) { try { applyData(cached); } catch (e) {} }
     loadApps();
 
-    // Muat ulang saat aplikasi kembali ke layar (mis. PWA dibuka lagi)
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') loadApps();
-    });
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
