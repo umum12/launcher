@@ -1,6 +1,6 @@
 // Service worker: network-first untuk file situs sendiri, cache sebagai cadangan offline.
 // Request ke Apps Script (/exec) tidak disentuh agar data selalu segar.
-const CACHE = 'fs-launcher-v9';
+const CACHE = 'fs-launcher-v10';
 const SHELL = ['./', './index.html', './config.js', './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {

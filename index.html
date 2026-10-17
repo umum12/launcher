@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
   <meta name="theme-color" content="#F6F8FC" />
   <meta name="color-scheme" content="dark light" />
-  <title>FAST HUB</title>
+  <title>FAST HUB ™</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
   <link rel="apple-touch-icon" href="icons/icon.svg">
@@ -52,6 +52,8 @@
       --status-dev-bg: rgba(245, 158, 11, 0.16);
       --status-maint: #EF4444;
       --status-maint-bg: rgba(239, 68, 68, 0.16);
+      --status-locked: #94A3B8;
+      --status-locked-bg: rgba(148, 163, 184, 0.16);
 
       --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
     }
@@ -66,6 +68,8 @@
       --status-online-bg: rgba(22, 163, 74, 0.12);
       --status-dev-bg: rgba(217, 119, 6, 0.12);
       --status-maint-bg: rgba(220, 38, 38, 0.12);
+      --status-locked: #64748B;
+      --status-locked-bg: rgba(100, 116, 139, 0.12);
 
       --status-online: #16A34A;
       --status-dev: #D97706;
@@ -197,6 +201,14 @@
       font-weight: 500;
     }
 
+    .clock {
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.4;
+      color: var(--color-text-secondary);
+      font-variant-numeric: tabular-nums;
+    }
+
     .section-title {
       margin: 0 0 var(--space-2);
       font-size: 18px;
@@ -280,6 +292,7 @@
     .badge.online { color: var(--status-online); background: var(--status-online-bg); }
     .badge.dev    { color: var(--status-dev);    background: var(--status-dev-bg); }
     .badge.maint  { color: var(--status-maint);  background: var(--status-maint-bg); }
+    .badge.locked { color: var(--status-locked); background: var(--status-locked-bg); }
     .badge::before {
       content: '';
       width: 6px;
@@ -318,6 +331,7 @@
       background: var(--color-surface);
     }
 
+    .modal-backdrop,
     .state-backdrop {
       position: fixed;
       inset: 0;
@@ -337,6 +351,7 @@
     }
     .state-backdrop { z-index: 1100; }
 
+    .modal,
     .state-panel {
       width: 100%;
       max-width: 340px;
@@ -352,9 +367,36 @@
     }
     .state-panel { text-align: center; }
 
+    .modal h3,
     .state-title { margin: 0 0 var(--space-1); font-size: 16px; font-weight: 600; }
 
+    .modal p,
     .state-copy { margin: 0; color: var(--color-text-secondary); font-size: 13px; line-height: 1.5; }
+
+    .input {
+      width: 100%;
+      min-height: 48px;
+      margin-top: var(--space-3);
+      border-radius: var(--radius-input);
+      border: 1px solid var(--color-border);
+      background: var(--color-bg);
+      color: var(--color-text);
+      font: inherit;
+      font-size: 18px;
+      letter-spacing: 6px;
+      text-align: center;
+      font-weight: 600;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-2);
+      margin-top: var(--space-4);
+    }
 
     .btn {
       min-height: 48px;
@@ -369,9 +411,21 @@
     .btn:active { transform: scale(0.97); }
     .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-    .btn-ok, .btn-back { background: var(--accent); color: #fff; }
+    .btn:disabled { opacity: 0.6; cursor: default; transform: none; }
+    .btn-cancel { background: var(--color-bg); color: var(--color-text); border: 1px solid var(--color-border); }
+    .btn-link { display: grid; place-items: center; width: 100%; margin-top: var(--space-4); text-decoration: none; }
+    [hidden] { display: none !important; }
+    .btn-ok, .btn-back, .btn-link { background: var(--accent); color: #fff; }
     .btn-ok:hover:not(:disabled), .btn-back:hover { background: var(--accent-hover); }
     .btn-back { width: 100%; margin-top: var(--space-4); }
+
+    .error {
+      display: none;
+      margin-top: var(--space-2);
+      color: var(--status-maint);
+      font-size: 13px;
+      text-align: center;
+    }
 
     .state-icon { font-size: 40px; line-height: 1; margin-bottom: var(--space-2); display: inline-block; }
     .state-name { font-size: 16px; font-weight: 600; margin-bottom: var(--space-1); }
@@ -433,9 +487,10 @@
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 10 1229 625"><path class="fs-blue" fill="#1F4E9C" fill-rule="evenodd" d="M9 602L324 60Q349 17 392 17L772 17L474 530Q433 602 392 602ZM178 474L253 474L332 340L522 340L561 272L372 272L404 215Q420 199 440 199L620 199L657 132L408 132Q372 132 350 175Z"/><path fill="#9CC247" fill-rule="evenodd" d="M480 625L721 198Q760 131 808 131L1170 131L914 581Q889 625 850 625ZM597 537L845 537Q880 537 902 498L964 388Q972 345 936 345L797 345Q782 345 788 329L806 299Q818 287 842 287L1018 287L1055 220L806 220Q775 220 755 255L690 376Q686 411 714 411L861 411Q872 412 870 424L851 457Q845 470 827 471L632 471Z"/><path fill="#D6312B" d="M803 17L1222 17L1177 97L759 97Z"/></svg>
         </span>
         <div class="title-wrap">
-          <h1 class="title" id="appTitle">FAST HUB</h1>
+          <h1 class="title" id="appTitle">FAST HUB ™</h1>
           <div class="tagline" id="tagline">Integrated Facility Support &amp; Services</div>
           <div class="datetime" id="dateTime">Memuat waktu...</div>
+          <div class="clock" id="clock"></div>
         </div>
         <button class="theme-btn" id="themeBtn" type="button" aria-label="Ganti tema">🌙</button>
       </div>
@@ -452,9 +507,23 @@
     </section>
 
     <footer class="footer">
-      <span class="pill" id="footerPill">Facility Support Launcher © 2025</span>
+      <span class="pill" id="footerPill">Facility Support Launcher © 2022</span>
     </footer>
   </main>
+
+  <div class="modal-backdrop" id="assetModal" role="dialog" aria-modal="true" aria-labelledby="assetTitle">
+    <div class="modal">
+      <h3 id="assetTitle">PIN Akses</h3>
+      <p id="assetPrompt">Masukkan PIN untuk membuka menu ini.</p>
+      <input class="input" id="assetCode" type="password" inputmode="numeric" autocomplete="off" placeholder="••••" maxlength="16" />
+      <div class="error" id="assetError" role="alert">PIN salah.</div>
+      <div class="actions" id="assetActions">
+        <button class="btn btn-cancel" id="assetCancel" type="button">Batal</button>
+        <button class="btn btn-ok" id="assetOk" type="button">Buka</button>
+      </div>
+      <a class="btn btn-link" id="assetLink" href="#" target="_blank" rel="noopener noreferrer" hidden>Buka</a>
+    </div>
+  </div>
 
   <div class="state-backdrop" id="stateOverlay" aria-hidden="true">
     <div class="state-panel">
@@ -476,8 +545,8 @@
     const DEFAULTS = {
       APP_NAME: 'FAST HUB ™',
       TAGLINE: 'Integrated Facility Support & Services',
-      VERSION: '2.4.0',
-      FOOTER: 'Facility Support Launcher © 2021',
+      VERSION: '2.0.0',
+      FOOTER: 'Facility Support Launcher © 2022',
       ENABLE_VIBRATE: true,
       ENABLE_RIPPLE: true,
       THEME: 'auto', // auto | light | dark
@@ -488,11 +557,21 @@
     let lastSig = '';
 
     /* ===== Lapisan data: fetch ke Apps Script /exec ===== */
-    const CACHE_KEY = 'fs_apps_v5';
+    const CACHE_KEY = 'fs_apps_v6';
     const API = {
       async load() {
         if (!CONFIG.API_URL) throw new Error('API_URL belum diisi di config.js');
         const res = await fetch(CONFIG.API_URL + '?action=apps&t=' + Date.now(), { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      },
+      async verify(id, code) {
+        // text/plain = "simple request" -> tanpa preflight CORS (Apps Script tidak mendukungnya)
+        const res = await fetch(CONFIG.API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'verify', id: id, code: code })
+        });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         return res.json();
       },
@@ -508,7 +587,10 @@
     const $ = (id) => document.getElementById(id);
     const grid = $('grid'), emptyState = $('emptyState'), emptyText = $('emptyText'), retryBtn = $('retryBtn');
     const appTitle = $('appTitle'), footerPill = $('footerPill'), dateTimeEl = $('dateTime');
-    const summaryEl = $('summary'), themeBtn = $('themeBtn'), toast = $('toast'), taglineEl = $('tagline');
+    const summaryEl = $('summary'), themeBtn = $('themeBtn'), toast = $('toast'), taglineEl = $('tagline'), clockEl = $('clock');
+    const modal = $('assetModal'), assetTitle = $('assetTitle'), assetPrompt = $('assetPrompt'), assetActions = $('assetActions'), assetLink = $('assetLink');
+    const assetCode = $('assetCode'), assetError = $('assetError'), assetCancel = $('assetCancel'), assetOk = $('assetOk');
+    let pendingApp = null, verifying = false;
     const stateOverlay = $('stateOverlay'), stateIcon = $('stateIcon'), stateTopLabel = $('stateTopLabel');
     const stateName = $('stateName'), stateHeadline = $('stateHeadline'), stateCopy = $('stateCopy');
     const stateBar = $('stateBar'), stateHint = $('stateHint'), stateBack = $('stateBack');
@@ -557,6 +639,7 @@
     function badgeMeta(app) {
       if (app.status === 'construction') return { text: 'DEVELOPMENT', cls: 'dev' };
       if (app.status === 'maintenance') return { text: 'MAINTENANCE', cls: 'maint' };
+      if (app.locked) return { text: 'LOCKED', cls: 'locked' };
       return { text: 'ONLINE', cls: 'online' };
     }
 
@@ -655,7 +738,8 @@
       const timeText = new Intl.DateTimeFormat('id-ID', {
         hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: 'Asia/Jakarta'
       }).format(now);
-      dateTimeEl.textContent = `${dateText} • ${timeText} WIB`;
+      dateTimeEl.textContent = dateText;
+      clockEl.textContent = timeText.replace(/\./g, ':') + ' WIB';
       updateSummary();
     }
 
@@ -665,6 +749,75 @@
       try { opened = window.open(url, '_blank'); } catch (e) {}
       if (opened) return;
       try { window.top.location.href = url; } catch (e) { window.location.href = url; }
+    }
+
+    /* ===== Modal PIN (divalidasi di server) ===== */
+    function openPasswordModal(app) {
+      pendingApp = app;
+      assetTitle.textContent = app.name + ' ACCESS';
+      assetPrompt.textContent = 'Masukkan PIN untuk membuka menu ini.';
+      assetError.style.display = 'none';
+      assetCode.value = '';
+      assetCode.hidden = false;
+      assetActions.hidden = false;
+      assetLink.hidden = true;
+      setVerifying(false);
+      modal.style.display = 'flex';
+      setTimeout(() => assetCode.focus(), 50);
+    }
+
+    function closePasswordModal() {
+      modal.style.display = 'none';
+      pendingApp = null;
+      assetCode.value = '';
+    }
+
+    function setVerifying(on) {
+      verifying = on;
+      assetOk.disabled = on;
+      assetCode.disabled = on;
+      assetOk.textContent = on ? 'Memeriksa...' : 'Buka';
+    }
+
+    function showCodeError(msg) {
+      assetError.textContent = msg;
+      assetError.style.display = 'block';
+    }
+
+    function showUnlocked(app, url) {
+      // Tombol "Buka" adalah link asli: tidak diblokir popup dan tidak muncul about:blank
+      assetCode.hidden = true;
+      assetActions.hidden = true;
+      assetError.style.display = 'none';
+      assetPrompt.textContent = 'PIN benar. Tekan tombol di bawah jika menu belum terbuka.';
+      assetLink.textContent = 'Buka ' + app.name;
+      assetLink.href = url;
+      assetLink.hidden = false;
+      try { assetLink.click(); } catch (e) {} // coba buka otomatis
+    }
+
+    async function submitCode() {
+      const app = pendingApp;
+      if (!app || verifying) return;
+      const code = assetCode.value.trim();
+      if (!code) { showCodeError('Masukkan PIN terlebih dahulu.'); return; }
+      assetError.style.display = 'none';
+      setVerifying(true);
+      try {
+        const res = await API.verify(app.id, code);
+        if (res && res.ok && /^https?:\/\//i.test(res.url || '')) {
+          setVerifying(false);
+          showUnlocked(app, res.url);
+          return;
+        }
+        setVerifying(false);
+        if (res && res.error === 'locked') showCodeError('Terlalu banyak percobaan. Coba lagi beberapa menit lagi.');
+        else if (res && res.error === 'invalid') { showCodeError('PIN salah.'); assetCode.select(); }
+        else showCodeError('Menu tidak tersedia saat ini.');
+      } catch (err) {
+        setVerifying(false);
+        showCodeError('Gagal terhubung ke server. Coba lagi.');
+      }
     }
 
     /* ===== Overlay status ===== */
@@ -694,6 +847,7 @@
 
     function handleCard(app) {
       if (app.status === 'construction' || app.status === 'maintenance') { showState(app); return; }
+      if (app.locked) { openPasswordModal(app); return; }
       if (app.url) openUrl(app.url);
     }
 
@@ -766,12 +920,27 @@
       vibrate(12);
     });
 
+    assetCancel.addEventListener('click', closePasswordModal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closePasswordModal(); });
+    assetOk.addEventListener('click', submitCode);
+    assetCode.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') submitCode();
+      if (e.key === 'Escape') closePasswordModal();
+    });
+    // klik asli pengguna pada tombol Buka -> tutup modal (klik otomatis tidak menutup)
+    assetLink.addEventListener('click', (e) => { if (e.isTrusted) setTimeout(closePasswordModal, 0); });
+    // kembali dari tab yang terbuka -> tutup modal
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && modal.style.display === 'flex' && !assetLink.hidden) closePasswordModal();
+    });
+
     stateOverlay.addEventListener('click', cancelStateAndGoHome);
     stateBack.addEventListener('click', (e) => { e.stopPropagation(); cancelStateAndGoHome(); });
     retryBtn.addEventListener('click', loadApps);
 
     document.addEventListener('keydown', (e) => {
       if (e.key !== 'Escape') return;
+      if (modal.style.display === 'flex') closePasswordModal();
       if (stateOverlay.style.display === 'flex') hideState();
     });
 
