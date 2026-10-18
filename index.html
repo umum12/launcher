@@ -12,8 +12,13 @@
   <link rel="apple-touch-icon" href="icons/icon.svg">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="FAST HUB">
+  <meta name="apple-mobile-web-app-title" content="HUB FS">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="application-name" content="HUB FS">
+  <style>
+    .install-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 48px; margin-top: -8px; border: none; border-radius: 14px; background: var(--accent); color: #fff; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 8px 18px -8px var(--accent); touch-action: manipulation; }
+    .install-btn:active { transform: scale(0.98); }
+  </style>
   <script src="config.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -162,8 +167,11 @@
       left: 50%;
       bottom: calc(24px + env(safe-area-inset-bottom));
       transform: translate(-50%, 12px);
+      max-width: min(88vw, 360px);
       padding: 10px 16px;
-      border-radius: 999px;
+      border-radius: 16px;
+      text-align: center;
+      line-height: 1.4;
       background: var(--color-text);
       color: var(--color-bg);
       font-size: 13px;
@@ -496,6 +504,7 @@
       </div>
       <p class="summary" id="summary"></p>
     </header>
+    <button class="install-btn" id="installBtn" type="button" hidden>⬇️ Pasang Aplikasi</button>
 
     <section aria-label="Semua Aplikasi">
       <h2 class="section-title">Aplikasi yang tersedia</h2>
@@ -557,7 +566,7 @@
     let lastSig = '';
 
     /* ===== Lapisan data: fetch ke Apps Script /exec ===== */
-    const CACHE_KEY = 'fs_apps_v6';
+    const CACHE_KEY = 'hubfs_apps_v1';
     const API = {
       async load() {
         if (!CONFIG.API_URL) throw new Error('API_URL belum diisi di config.js');
@@ -596,7 +605,7 @@
     const stateBar = $('stateBar'), stateHint = $('stateHint'), stateBack = $('stateBack');
 
     let userTheme = null; // pilihan manual dari tombol tema
-    try { userTheme = localStorage.getItem('fs_theme'); } catch (e) {}
+    try { userTheme = localStorage.getItem('hubfs_theme'); } catch (e) {}
 
     function isDarkTheme() {
       const t = userTheme || CONFIG.THEME;
@@ -866,11 +875,11 @@
     /* ===== Tekan lama kartu = salin link ===== */
     let pressTimer = null, pressX = 0, pressY = 0, suppressClick = false, toastTimer = null;
 
-    function showToast(msg) {
+    function showToast(msg, ms = 1800) {
       toast.textContent = msg;
       toast.classList.add('show');
       clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), ms);
     }
 
     function legacyCopy(text) {
@@ -915,7 +924,7 @@
 
     themeBtn.addEventListener('click', () => {
       userTheme = isDarkTheme() ? 'light' : 'dark';
-      try { localStorage.setItem('fs_theme', userTheme); } catch (e) {}
+      try { localStorage.setItem('hubfs_theme', userTheme); } catch (e) {}
       applyTheme();
       vibrate(12);
     });
@@ -963,9 +972,48 @@
     loadApps();
 
 
+    /* ===== PWA: service worker (scope dibatasi ke folder ini) ===== */
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(() => {}));
     }
+
+    /* ===== Tombol Pasang Aplikasi ===== */
+    let deferredPrompt = null;
+    const installBtn = document.getElementById('installBtn');
+    const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    function refreshInstallBtn() {
+      installBtn.hidden = isStandalone() || !(deferredPrompt || isIOS);
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      refreshInstallBtn();
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredPrompt = null;
+      installBtn.hidden = true;
+      showToast('Aplikasi berhasil dipasang');
+    });
+
+    installBtn.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        const promptEvent = deferredPrompt;
+        deferredPrompt = null;
+        promptEvent.prompt();
+        try { await promptEvent.userChoice; } catch (e) {}
+        refreshInstallBtn();
+        return;
+      }
+      if (isIOS) showToast('Ketuk tombol Bagikan, lalu pilih "Tambah ke Layar Utama"', 6000);
+    });
+
+    const standaloneMQ = window.matchMedia('(display-mode: standalone)');
+    if (standaloneMQ.addEventListener) standaloneMQ.addEventListener('change', refreshInstallBtn);
+    refreshInstallBtn();
   </script>
 </body>
 </html>

@@ -1,9 +1,10 @@
 {
-  "name": "FAST HUB",
-  "short_name": "FAST HUB",
-  "description": "FAST HUB - Integrated Facility Support & Services",
+  "id": "hub-fs-fast-hub-launcher",
+  "name": "HUB FS",
+  "short_name": "HUB FS",
+  "description": "HUB FS - FAST HUB, Integrated Facility Support & Services",
   "lang": "id",
-  "start_url": "./",
+  "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
@@ -49,7 +50,7 @@
       ]
     },
     {
-      "name": "Galon Web",
+      "name": "Galon",
       "short_name": "Galon",
       "url": "./?open=GALON",
       "icons": [
