@@ -657,7 +657,10 @@
       const ariaLabel = escapeHtml(app.name + (app.subtitle ? ', ' + app.subtitle : ''));
       const color = /^#[0-9a-f]{3,8}$/i.test(app.color) ? app.color : '#2563eb';
       const direct = app.status === 'online' && /^https?:\/\//i.test(app.url || '');
-      const link = direct ? `href="${escapeHtml(app.url)}" target="_blank" rel="noopener noreferrer"` : 'href="#"';
+      // satu origin (mis. repo lain di github.io) -> buka di jendela yang sama; lain origin -> tab/jendela baru
+      const link = !direct ? 'href="#"'
+        : isSameOrigin(app.url) ? `href="${escapeHtml(app.url)}" data-direct="1"`
+        : `href="${escapeHtml(app.url)}" target="_blank" rel="noopener noreferrer" data-direct="1"`;
       return `
         <a class="card${app.fullWidth ? ' full' : ''}" ${link} data-index="${index}" style="--c:${color};--i:${index}" aria-label="${ariaLabel}">
           <div class="icon">${escapeHtml(app.icon || '🔗')}</div>
@@ -701,6 +704,7 @@
       Object.assign(CONFIG, data.config || {});
       APPS = data.apps;
       renderApps();
+      prefetchSameOrigin();
       handleOpenParam();
     }
 
@@ -753,7 +757,25 @@
     }
 
     /* ===== Buka URL ===== */
+    function isSameOrigin(url) {
+      try { return new URL(url, location.href).origin === location.origin; } catch (e) { return false; }
+    }
+
+    // Prefetch halaman aplikasi satu origin agar terbuka cepat (memakai cache browser)
+    const prefetched = new Set();
+    function prefetchSameOrigin() {
+      APPS.forEach((a) => {
+        if (!a.url || prefetched.has(a.url) || !isSameOrigin(a.url)) return;
+        prefetched.add(a.url);
+        const l = document.createElement('link');
+        l.rel = 'prefetch';
+        l.href = a.url;
+        document.head.appendChild(l);
+      });
+    }
+
     function openUrl(url) {
+      if (isSameOrigin(url)) { location.href = url; return; }
       let opened = null;
       try { opened = window.open(url, '_blank'); } catch (e) {}
       if (opened) return;
@@ -801,6 +823,7 @@
       assetPrompt.textContent = 'PIN benar. Tekan tombol di bawah jika menu belum terbuka.';
       assetLink.textContent = 'Buka ' + app.name;
       assetLink.href = url;
+      if (isSameOrigin(url)) assetLink.removeAttribute('target'); else assetLink.setAttribute('target', '_blank');
       assetLink.hidden = false;
       try { assetLink.click(); } catch (e) {} // coba buka otomatis
     }
@@ -866,7 +889,7 @@
       if (suppressClick) { suppressClick = false; e.preventDefault(); return; }
       createRipple(card, e);
       vibrate(18);
-      if (card.hasAttribute('target')) return; // link asli: dibuka langsung oleh browser
+      if (card.dataset.direct) return; // link asli: dibuka langsung oleh browser
       e.preventDefault();
       const app = APPS[Number(card.dataset.index)];
       if (app) handleCard(app);
