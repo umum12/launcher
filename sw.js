@@ -3,16 +3,21 @@
 // dan hanya menangani request di dalam scope folder ini (aman untuk project GitHub Pages lain
 // yang berbagi origin username.github.io). Request ke Apps Script tidak disentuh.
 const PREFIX = 'hubfs-fasthub-';
-const CACHE = PREFIX + 'v1';
+const CACHE = PREFIX + 'v3';
 const LEGACY_PREFIX = 'fs-launcher-'; // cache versi lama project ini
 const SHELL = [
-  './', './index.html', './config.js', './manifest.webmanifest',
+  './', './index.html', './config.js', './about.txt', './manifest.webmanifest',
   './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png',
   './icons/icon-maskable-512.png', './icons/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  // add satu-satu: kalau ada file yang belum ter-upload, service worker tetap terpasang
+  e.waitUntil(
+    caches.open(CACHE)
+      .then((c) => Promise.all(SHELL.map((u) => c.add(u).catch(() => {}))))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', (e) => {

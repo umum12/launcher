@@ -1,0 +1,35 @@
+HUB FS
+
+Facility Support Application Hub
+
+One Platform. Eight Applications. Unified Access.
+
+HUB FS is a centralized Progressive Web App (PWA) launcher designed to integrate eight web applications within a unified navigation environment, powered by GitHub Pages.
+
+Architecture Overview
+
+HUB FS implements a wide-scope navigation strategy using "scope: "/"" to cover all URL paths within the same origin. This enables cross-repository navigation while maintaining a consistent, single-window application experience.
+
+Technical Specifications
+
+- Platform: Progressive Web App (PWA)
+- Hosting: GitHub Pages
+- Architecture: Multi-repository, shared-origin
+- Navigation Scope: "/"
+- Application Access: Centralized launcher with eight application entry points
+- Deployment Model: Independent repositories under a unified origin
+
+Design Principles
+
+- Centralized Access — one entry point for all facility support applications.
+- Modular Deployment — each application maintains its own repository and deployment lifecycle.
+- Unified Navigation — cross-repository access within a consistent PWA window.
+- Maintainable Architecture — application modules remain independently manageable.
+
+Architecture Objective
+
+Deliver a streamlined application ecosystem that simplifies access, preserves modularity, and reduces navigation overhead without consolidating independent applications into a single codebase.
+
+---
+
+HUB FS | Centralized Access. Modular Architecture. Unified Experience.
