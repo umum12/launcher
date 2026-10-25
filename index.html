@@ -55,9 +55,9 @@
       --status-online-bg: rgba(34, 197, 94, 0.16);
       --status-dev: #F59E0B;
       --status-dev-bg: rgba(245, 158, 11, 0.16);
-      --status-maint: #EF4444;
+      --status-maint: #F87171;
       --status-maint-bg: rgba(239, 68, 68, 0.16);
-      --status-locked: #94A3B8;
+      --status-locked: #A9B6CA;
       --status-locked-bg: rgba(148, 163, 184, 0.16);
 
       --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
@@ -73,12 +73,12 @@
       --status-online-bg: rgba(22, 163, 74, 0.12);
       --status-dev-bg: rgba(217, 119, 6, 0.12);
       --status-maint-bg: rgba(220, 38, 38, 0.12);
-      --status-locked: #64748B;
+      --status-locked: #475569;
       --status-locked-bg: rgba(100, 116, 139, 0.12);
 
-      --status-online: #16A34A;
-      --status-dev: #D97706;
-      --status-maint: #DC2626;
+      --status-online: #166534;
+      --status-dev: #92400E;
+      --status-maint: #B91C1C;
     }
 
     * { box-sizing: border-box; }
@@ -256,7 +256,7 @@
       -webkit-touch-callout: none;
       touch-action: manipulation;
       transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
-      animation: rise 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+      animation: rise 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
       animation-delay: calc(var(--i, 0) * 50ms);
     }
 
@@ -574,7 +574,7 @@
       <div class="grid" id="grid"></div>
       <div class="empty-state" id="emptyState" hidden>
         <div id="emptyText">Memuat aplikasi...</div>
-        <button class="btn btn-ok" id="retryBtn" hidden>Coba lagi</button>
+        <button class="btn btn-ok" id="retryBtn" type="button" hidden>Coba lagi</button>
       </div>
     </section>
 
@@ -606,7 +606,7 @@
       <div class="state-copy" id="stateCopy">This feature is not available yet. Please check back soon.</div>
       <div class="state-progress"><div class="bar" id="stateBar"></div></div>
       <div class="hint" id="stateHint">Tap layar untuk kembali</div>
-      <button class="btn btn-back" id="stateBack">Kembali</button>
+      <button class="btn btn-back" id="stateBack" type="button">Kembali</button>
     </div>
   </div>
 
@@ -676,22 +676,32 @@ HUB FS | Centralized Access. Modular Architecture. Unified Experience.</script>
 
     /* ===== Lapisan data: fetch ke Apps Script /exec ===== */
     const CACHE_KEY = 'hubfs_apps_v1';
+
+    // fetch + batas waktu (agar tampilan tidak menggantung bila server lambat)
+    function fetchJSON(url, opts, ms) {
+      const ctl = new AbortController();
+      const timer = setTimeout(() => ctl.abort(), ms);
+      return fetch(url, Object.assign({}, opts, { signal: ctl.signal }))
+        .then((res) => { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+        .finally(() => clearTimeout(timer));
+    }
+
     const API = {
       async load() {
-        if (!CONFIG.API_URL) throw new Error('API_URL belum diisi di config.js');
-        const res = await fetch(CONFIG.API_URL + '?action=apps&t=' + Date.now(), { cache: 'no-store' });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.json();
+        if (!CONFIG.API_URL || /GANTI/.test(CONFIG.API_URL)) {
+          const err = new Error('API_URL belum diisi');
+          err.code = 'NO_API';
+          throw err;
+        }
+        return fetchJSON(CONFIG.API_URL + '?action=apps&t=' + Date.now(), { cache: 'no-store' }, 20000);
       },
       async verify(id, code) {
         // text/plain = "simple request" -> tanpa preflight CORS (Apps Script tidak mendukungnya)
-        const res = await fetch(CONFIG.API_URL, {
+        return fetchJSON(CONFIG.API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'verify', id: id, code: code })
-        });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.json();
+        }, 20000);
       },
       cacheGet() {
         try { return JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch (e) { return null; }
@@ -745,7 +755,9 @@ HUB FS | Centralized Access. Modular Architecture. Unified Experience.</script>
       ripple.style.left = (event.clientX - rect.left - size / 2) + 'px';
       ripple.style.top = (event.clientY - rect.top - size / 2) + 'px';
       card.appendChild(ripple);
-      ripple.addEventListener('animationend', () => ripple.remove());
+      const done = () => ripple.remove();
+      ripple.addEventListener('animationend', done);
+      setTimeout(done, 600); // cadangan: animationend tidak terpicu saat reduced-motion
     }
 
     function escapeHtml(str) {
@@ -810,7 +822,7 @@ HUB FS | Centralized Access. Modular Architecture. Unified Experience.</script>
 
     function applyData(data) {
       if (!data || !Array.isArray(data.apps)) throw new Error('Format data tidak valid');
-      Object.assign(CONFIG, data.config || {});
+      Object.assign(CONFIG, data.config || {}, window.FS_CONFIG || {}); // config.js lokal menang
       APPS = data.apps;
       renderApps();
       prefetchSameOrigin();
@@ -825,12 +837,16 @@ HUB FS | Centralized Access. Modular Architecture. Unified Experience.</script>
         applyData(data);
         API.cacheSet(data);
       } catch (err) {
-        if (!hadCache) showEmpty('Gagal memuat daftar aplikasi. Periksa koneksi, lalu coba lagi.', true);
+        if (!hadCache) showEmpty(err && err.code === 'NO_API' ? 'API_URL belum diisi di config.js.' : 'Gagal memuat daftar aplikasi. Periksa koneksi, lalu coba lagi.', true);
       }
     }
 
+    const FMT_DATE = new Intl.DateTimeFormat('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Jakarta' });
+    const FMT_TIME = new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: 'Asia/Jakarta' });
+    const FMT_HOUR = new Intl.DateTimeFormat('en-GB', { hour: 'numeric', hourCycle: 'h23', timeZone: 'Asia/Jakarta' });
+
     function greeting() {
-      const h = Number(new Intl.DateTimeFormat('en-GB', { hour: 'numeric', hourCycle: 'h23', timeZone: 'Asia/Jakarta' }).format(new Date()));
+      const h = Number(FMT_HOUR.format(new Date()));
       return h < 4 ? 'Selamat malam' : h < 11 ? 'Selamat pagi' : h < 15 ? 'Selamat siang' : h < 18 ? 'Selamat sore' : 'Selamat malam';
     }
 
@@ -854,14 +870,8 @@ HUB FS | Centralized Access. Modular Architecture. Unified Experience.</script>
 
     function setDateTime() {
       const now = new Date();
-      const dateText = new Intl.DateTimeFormat('id-ID', {
-        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Jakarta'
-      }).format(now);
-      const timeText = new Intl.DateTimeFormat('id-ID', {
-        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: 'Asia/Jakarta'
-      }).format(now);
-      dateTimeEl.textContent = dateText;
-      clockEl.textContent = timeText.replace(/\./g, ':') + ' WIB';
+      dateTimeEl.textContent = FMT_DATE.format(now);
+      clockEl.textContent = FMT_TIME.format(now).replace(/\./g, ':') + ' WIB';
       updateSummary();
     }
 
@@ -893,6 +903,7 @@ HUB FS | Centralized Access. Modular Architecture. Unified Experience.</script>
 
     /* ===== Modal PIN (divalidasi di server) ===== */
     function openPasswordModal(app) {
+      lastFocus = document.activeElement;
       pendingApp = app;
       assetTitle.textContent = app.name + ' ACCESS';
       assetPrompt.textContent = 'Masukkan PIN untuk membuka menu ini.';
@@ -906,10 +917,16 @@ HUB FS | Centralized Access. Modular Architecture. Unified Experience.</script>
       setTimeout(() => assetCode.focus(), 50);
     }
 
+    function restoreFocus() {
+      if (lastFocus && document.contains(lastFocus) && lastFocus.focus) lastFocus.focus();
+      lastFocus = null;
+    }
+
     function closePasswordModal() {
       modal.style.display = 'none';
       pendingApp = null;
       assetCode.value = '';
+      restoreFocus();
     }
 
     function setVerifying(on) {
@@ -964,6 +981,7 @@ HUB FS | Centralized Access. Modular Architecture. Unified Experience.</script>
     /* ===== About Application ===== */
     const aboutModal = $('aboutModal'), aboutBody = $('aboutBody'), aboutClose = $('aboutClose'), aboutX = $('aboutX');
     let aboutHTML = '';
+    let lastFocus = null;
 
     // about.txt (bisa diedit tanpa ubah kode); salinan tertanam sebagai cadangan jika file tidak bisa dimuat
     async function loadAboutText() {
@@ -1019,6 +1037,7 @@ HUB FS | Centralized Access. Modular Architecture. Unified Experience.</script>
     }
 
     async function openAbout() {
+      lastFocus = document.activeElement;
       aboutModal.style.display = 'flex';
       try { history.pushState({ fsAbout: true }, '', location.href); } catch (e) {}
       aboutClose.focus();
@@ -1032,7 +1051,11 @@ HUB FS | Centralized Access. Modular Architecture. Unified Experience.</script>
       }
     }
 
-    function hideAbout() { aboutModal.style.display = 'none'; }
+    function hideAbout() {
+      if (aboutModal.style.display !== 'flex') return;
+      aboutModal.style.display = 'none';
+      restoreFocus();
+    }
 
     function closeAbout() {
       hideAbout();
@@ -1130,7 +1153,8 @@ HUB FS | Centralized Access. Modular Architecture. Unified Experience.</script>
       if (pressTimer && Math.hypot(e.clientX - pressX, e.clientY - pressY) > 8) cancelPress();
     });
     ['pointerup', 'pointercancel', 'pointerleave'].forEach((t) => grid.addEventListener(t, cancelPress));
-    grid.addEventListener('contextmenu', (e) => { if (e.target.closest('.card')) e.preventDefault(); });
+    const coarsePointer = window.matchMedia('(pointer: coarse)');
+    grid.addEventListener('contextmenu', (e) => { if (coarsePointer.matches && e.target.closest('.card')) e.preventDefault(); });
 
     themeBtn.addEventListener('click', () => {
       userTheme = isDarkTheme() ? 'light' : 'dark';
@@ -1182,7 +1206,8 @@ HUB FS | Centralized Access. Modular Architecture. Unified Experience.</script>
     /* ===== Mulai ===== */
     renderHeader();
     setDateTime();
-    setInterval(setDateTime, 1000);
+    setInterval(() => { if (!document.hidden) setDateTime(); }, 1000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) setDateTime(); });
 
     const cached = API.cacheGet();
     if (cached) { try { applyData(cached); } catch (e) {} }

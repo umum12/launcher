@@ -1,10 +1,11 @@
-// Service worker HUB FS (FAST HUB). Network-first, cache sebagai cadangan offline.
+// Service worker HUB FS (FAST HUB). Network-first (selalu cek versi terbaru), cache sebagai cadangan offline.
 // Isolasi: nama cache berawalan unik, hanya menghapus cache miliknya sendiri,
 // dan hanya menangani request di dalam scope folder ini (aman untuk project GitHub Pages lain
 // yang berbagi origin username.github.io). Request ke Apps Script tidak disentuh.
 const PREFIX = 'hubfs-fasthub-';
-const CACHE = PREFIX + 'v3';
+const CACHE = PREFIX + 'v4';
 const LEGACY_PREFIX = 'fs-launcher-'; // cache versi lama project ini
+const SCOPE_PATH = new URL(self.registration.scope).pathname;
 const SHELL = [
   './', './index.html', './config.js', './about.txt', './manifest.webmanifest',
   './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png',
@@ -37,15 +38,21 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET') return;
   if (!req.url.startsWith(self.registration.scope)) return; // hanya file di folder project ini
 
+  // Halaman utama (./, ./?source=pwa, ./?open=X) disimpan sebagai satu entri agar cache tidak membengkak
+  const u = new URL(req.url);
+  const isHome = req.mode === 'navigate' && (u.pathname === SCOPE_PATH || u.pathname === SCOPE_PATH + 'index.html');
+  const key = isHome ? new Request(self.registration.scope + 'index.html') : req;
+
   e.respondWith(
-    fetch(req)
+    // no-cache: selalu validasi ke server, tidak terjebak cache HTTP GitHub Pages (~10 menit)
+    fetch(req, { cache: 'no-cache' })
       .then((res) => {
         if (res.ok) {
           const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(req, copy));
+          caches.open(CACHE).then((c) => c.put(key, copy));
         }
         return res;
       })
-      .catch(() => caches.match(req).then((r) => r || caches.match('./index.html')))
+      .catch(() => caches.match(key).then((r) => r || caches.match('./index.html')))
   );
 });
